@@ -13,11 +13,11 @@
     <relativePath/>
   </parent>
 
-  <groupId>com.nexusflow</groupId>
-  <artifactId>nexusflow-parent</artifactId>
+  <groupId>com.spawnbase</groupId>
+  <artifactId>spawnbase-parent</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>NexusFlow Parent</name>
+  <name>SpawnBase Parent</name>
   <description>Microservices Service Provisioning Platform</description>
 
   <modules>
@@ -39,7 +39,7 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>com.nexusflow</groupId>
+        <groupId>com.spawnbase</groupId>
         <artifactId>common</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -72,3 +72,4 @@
   </build>
 
 </project>
+

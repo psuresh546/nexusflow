@@ -2,17 +2,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<!-- AFTER — point to your nexusflow parent -->
+	<!-- AFTER — point to your SpawnBase parent -->
 	<parent>
-		<groupId>com.nexusflow</groupId>
-		<artifactId>nexusflow-parent</artifactId>
+		<groupId>com.spawnbase</groupId>
+		<artifactId>spawnbase-parent</artifactId>
 		<version>1.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>metadata-service</artifactId>
 	<version>1.0-SNAPSHOT</version>
-	<name>NexusFlow Metadata Service</name>
+	<name>SpawnBase Metadata Service</name>
 	<description/>
 	<url/>
 	<licenses>
@@ -124,3 +124,5 @@
 	</build>
 
 </project>
+
+

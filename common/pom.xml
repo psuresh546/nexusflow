@@ -8,19 +8,19 @@
 
   <!--
     Points to OUR parent — not Spring Boot's parent.
-    This is the chain: common → nexusflow-parent → spring-boot-parent
+    This is the chain: common → spawnbase-parent → spring-boot-parent
   -->
   <parent>
-    <groupId>com.nexusflow</groupId>
-    <artifactId>nexusflow-parent</artifactId>
+    <groupId>com.spawnbase</groupId>
+    <artifactId>spawnbase-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>common</artifactId>
   <packaging>jar</packaging>
-  <name>NexusFlow Common</name>
-  <description>Shared models and utilities for all NexusFlow services</description>
+  <name>SpawnBase Common</name>
+  <description>Shared models and utilities for all SpawnBase services</description>
 
   <dependencies>
     <dependency>
@@ -32,3 +32,4 @@
   </dependencies>
 
 </project>
+
