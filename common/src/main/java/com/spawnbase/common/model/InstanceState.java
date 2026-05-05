@@ -6,10 +6,8 @@ public enum InstanceState {
     PROVISIONING,
     RUNNING,
     STOPPED,
-
-    STARTING,      // ← NEW: docker start (from STOPPED)
-    RESTARTING,    // ← KEPT: docker restart (from RUNNING)
-
+    STARTING,
+    RESTARTING,
     DELETING,
     DELETED,
     FAILED;

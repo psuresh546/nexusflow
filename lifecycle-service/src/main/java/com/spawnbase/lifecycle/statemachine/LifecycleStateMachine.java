@@ -11,45 +11,15 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * The core FSM engine for SpawnBase.
- *
- * All valid state transitions are declared in one place —
- * the VALID_TRANSITIONS map. No if-else chains anywhere.
- *
- * How to use:
- *   InstanceState next = stateMachine.transition(current, target);
- *
- * If the transition is invalid → throws InvalidTransitionException
- * If the transition is valid   → returns the target state
- *
- * @Component makes Spring manage this as a singleton bean.
- * One instance, shared across the entire lifecycle-service.
- */
 @Component
 public class LifecycleStateMachine {
 
     private static final Logger log =
             LoggerFactory.getLogger(LifecycleStateMachine.class);
 
-    /**
-     * THE TRANSITION TABLE — The single source of truth.
-     *
-     * Read it as: "From state X, you are allowed to go to states Y, Z..."
-     * Any transition NOT listed here is ILLEGAL.
-     *
-     * EnumMap is used instead of HashMap because:
-     * 1. Keys are enums — EnumMap is O(1) and more memory efficient
-     * 2. Iteration order follows enum declaration order
-     * 3. It's the correct collection for enum-keyed maps
-     */
     private static final Map<InstanceState, Set<InstanceState>>
             VALID_TRANSITIONS = new EnumMap<>(InstanceState.class);
 
-    /*
-     * Static initializer — runs once when the class loads.
-     * Builds the entire transition table upfront.
-     */
     static {
         // Entry point
         VALID_TRANSITIONS.put(InstanceState.REQUESTED,
@@ -100,14 +70,7 @@ public class LifecycleStateMachine {
                 EnumSet.noneOf(InstanceState.class));
     }
 
-    /**
-     * Attempts a state transition from → to.
-     *
-     * @param from  the current state of the instance
-     * @param to    the desired next state
-     * @return      the new state (same as 'to') if transition is valid
-     * @throws InvalidTransitionException if the transition is not allowed
-     */
+
     public InstanceState transition(InstanceState from, InstanceState to) {
         log.info("Attempting transition: [{}] → [{}]", from, to);
 
@@ -117,13 +80,7 @@ public class LifecycleStateMachine {
         return to;
     }
 
-    /**
-     * Validates whether a transition is allowed.
-     * Throws InvalidTransitionException if not.
-     *
-     * Separated from transition() so other services can
-     * check validity WITHOUT actually performing the transition.
-     */
+
     public void validate(InstanceState from, InstanceState to) {
         Set<InstanceState> allowed = VALID_TRANSITIONS.get(from);
 
@@ -133,13 +90,7 @@ public class LifecycleStateMachine {
         }
     }
 
-    /**
-     * Returns all valid next states from a given state.
-     * Useful for the UI to show only valid action buttons.
-     *
-     * Example: if instance is RUNNING, UI shows: Stop | Restart | Delete
-     *          if instance is DELETED, UI shows: nothing
-     */
+
     public Set<InstanceState> getAllowedTransitions(InstanceState from) {
         return VALID_TRANSITIONS.getOrDefault(
                 from,
@@ -147,10 +98,7 @@ public class LifecycleStateMachine {
         );
     }
 
-    /**
-     * Checks if a specific transition is valid without throwing.
-     * Useful for conditional UI rendering or pre-checks.
-     */
+
     public boolean isValidTransition(InstanceState from, InstanceState to) {
         try {
             validate(from, to);
