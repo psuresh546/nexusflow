@@ -107,3 +107,11 @@ infra/*.tfstate.backup
 infra/*.tfvars
 infra/.terraform.lock.hcl
 infra/crash.log
+
+# ─────────────────────────────────────────
+# POSTMAN
+# ─────────────────────────────────────────
+postman/
+.postman/
+*.postman_collection.json
+*.postman_environment.json
