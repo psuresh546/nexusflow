@@ -1,5 +1,5 @@
 package com.spawnbase.provisioning.provider;
-import com.spawnbase.provisioning.model.DatabaseType;
+import com.spawnbase.common.model.DatabaseType;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumMap;

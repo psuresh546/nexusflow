@@ -1,4 +1,4 @@
-package com.spawnbase.provisioning.model;
+package com.spawnbase.common.model;
 
 public enum DatabaseType {
     POSTGRESQL,

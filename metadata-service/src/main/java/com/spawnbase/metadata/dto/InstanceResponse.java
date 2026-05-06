@@ -1,7 +1,7 @@
 package com.spawnbase.metadata.dto;
 
 import com.spawnbase.common.model.InstanceState;
-import com.spawnbase.provisioning.model.DatabaseType;
+import com.spawnbase.common.model.DatabaseType;
 import lombok.Builder;
 import lombok.Data;
 

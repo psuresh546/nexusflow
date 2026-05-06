@@ -1,6 +1,6 @@
 package com.spawnbase.metadata.dto;
 
-import com.spawnbase.provisioning.model.DatabaseType;
+import com.spawnbase.common.model.DatabaseType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;

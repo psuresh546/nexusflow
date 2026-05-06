@@ -2,7 +2,7 @@ package com.spawnbase.metadata.repository;
 
 import com.spawnbase.common.model.InstanceState;
 import com.spawnbase.metadata.entity.Instance;
-import com.spawnbase.provisioning.model.DatabaseType;
+import com.spawnbase.common.model.DatabaseType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

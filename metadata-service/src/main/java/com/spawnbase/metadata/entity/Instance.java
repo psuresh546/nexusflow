@@ -1,7 +1,7 @@
 package com.spawnbase.metadata.entity;
 
 import com.spawnbase.common.model.InstanceState;
-import com.spawnbase.provisioning.model.DatabaseType;
+import com.spawnbase.common.model.DatabaseType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
