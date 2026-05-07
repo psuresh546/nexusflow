@@ -6,8 +6,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class LifecycleServiceApplicationTests {
 
+
 	@Test
-	void contextLoads() {
+	void placeholder() {
+		// Integration tests in Day 14
 	}
 
 }

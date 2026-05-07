@@ -7,7 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 class ProvisioningServiceApplicationTests {
 
 	@Test
-	void contextLoads() {
+	void placeholder() {
+		// Integration tests in Day 14
 	}
 
 }
