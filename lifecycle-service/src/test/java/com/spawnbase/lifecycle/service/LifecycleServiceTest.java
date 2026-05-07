@@ -21,15 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for LifecycleService.
- *
- * @ExtendWith(MockitoExtension.class) → enables Mockito annotations
- * @Mock → creates fake dependency
- * @InjectMocks → creates real LifecycleService with fakes injected
- *
- * No real HTTP calls. No real DB. Pure logic testing.
- */
+
 @ExtendWith(MockitoExtension.class)
 class LifecycleServiceTest {
 

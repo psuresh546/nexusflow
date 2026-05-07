@@ -11,18 +11,6 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 
-/**
- * Unit tests for LifecycleStateMachine.
- *
- * No Spring context loaded — pure Java tests.
- * Runs in milliseconds.
- *
- * Testing strategy:
- * 1. Every valid transition → should succeed
- * 2. Every invalid transition → should throw
- * 3. Terminal states → no transitions allowed
- * 4. getAllowedTransitions → correct sets returned
- */
 class LifecycleStateMachineTest {
 
     // No @Mock needed — LifecycleStateMachine has no dependencies
