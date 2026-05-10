@@ -1,6 +1,7 @@
 package com.spawnbase.provisioning.controller;
 
 import com.spawnbase.common.model.DatabaseType;
+import com.spawnbase.common.util.PasswordGenerator;
 import com.spawnbase.provisioning.dto.ProvisionRequest;
 import com.spawnbase.provisioning.provider.DatabaseProvider;
 import com.spawnbase.provisioning.provider.DatabaseProviderFactory;
@@ -15,7 +16,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-
 @RestController
 @RequestMapping("/api/provisioning")
 @Slf4j
@@ -25,7 +25,6 @@ public class ProvisioningController {
     private final ProvisioningService provisioningService;
     private final DatabaseProviderFactory providerFactory;
 
-
     @PostMapping("/instances/{id}/provision")
     public ResponseEntity<Map<String, Object>> provision(
             @PathVariable UUID id,
@@ -34,13 +33,22 @@ public class ProvisioningController {
         log.info("Provision request for instance {} — type: {}",
                 id, request.getDbType());
 
-        // Run async — Docker operations take time
-        // Caller polls metadata-service to check progress
+        // Auto-generate password if not provided
+        String password = (request.getPassword() == null
+                || request.getPassword().isBlank())
+                ? PasswordGenerator.generate()
+                : request.getPassword();
+
+        log.info("Password {} for instance {}",
+                request.getPassword() == null
+                        ? "auto-generated" : "provided by caller",
+                id);
+
         CompletableFuture.runAsync(() ->
                 provisioningService.provision(
                         id,
                         request.getDbType(),
-                        request.getPassword()
+                        password
                 )
         );
 
@@ -48,21 +56,19 @@ public class ProvisioningController {
                 "message", "Provisioning started",
                 "instanceId", id.toString(),
                 "dbType", request.getDbType().name(),
-                "status", "PROVISIONING"
+                "status", "PROVISIONING",
+                "passwordGenerated",
+                request.getPassword() == null
+                        || request.getPassword().isBlank()
         ));
     }
 
-    /**
-     * POST /api/provisioning/instances/{id}/stop
-     * Stop a running container.
-     */
     @PostMapping("/instances/{id}/stop")
     public ResponseEntity<Map<String, Object>> stop(
             @PathVariable UUID id,
             @RequestParam String containerId) {
 
         log.info("Stop request for instance {}", id);
-
         CompletableFuture.runAsync(() ->
                 provisioningService.stop(id, containerId)
         );
@@ -73,10 +79,6 @@ public class ProvisioningController {
         ));
     }
 
-    /**
-     * POST /api/provisioning/instances/{id}/start
-     * Start a stopped container.
-     */
     @PostMapping("/instances/{id}/start")
     public ResponseEntity<Map<String, Object>> start(
             @PathVariable UUID id,
@@ -84,7 +86,6 @@ public class ProvisioningController {
             @RequestParam DatabaseType dbType) {
 
         log.info("Start request for instance {}", id);
-
         DatabaseProvider provider =
                 providerFactory.getProvider(dbType);
 
@@ -98,17 +99,12 @@ public class ProvisioningController {
         ));
     }
 
-    /**
-     * DELETE /api/provisioning/instances/{id}
-     * Delete a container permanently.
-     */
     @DeleteMapping("/instances/{id}")
     public ResponseEntity<Map<String, Object>> delete(
             @PathVariable UUID id,
             @RequestParam(required = false) String containerId) {
 
         log.info("Delete request for instance {}", id);
-
         CompletableFuture.runAsync(() ->
                 provisioningService.delete(id, containerId)
         );
@@ -119,10 +115,6 @@ public class ProvisioningController {
         ));
     }
 
-    /**
-     * GET /api/provisioning/supported-databases
-     * Returns all supported database types.
-     */
     @GetMapping("/supported-databases")
     public ResponseEntity<Map<String, Object>> supportedDatabases() {
         return ResponseEntity.ok(Map.of(
