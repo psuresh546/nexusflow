@@ -30,16 +30,19 @@ public class ProvisioningService {
     private final DatabaseProviderFactory providerFactory;
     private final CredentialClient credentialClient;  // ← NEW
     private final RestClient metadataRestClient;
+    private final RollbackService rollbackService;
 
     public ProvisioningService(
             DockerClient dockerClient,
             DatabaseProviderFactory providerFactory,
-            CredentialClient credentialClient,          // ← NEW
+            CredentialClient credentialClient,
+            RollbackService rollbackService,           // ← NEW
             @Value("${metadata.service.url}")
             String metadataServiceUrl) {
         this.dockerClient = dockerClient;
         this.providerFactory = providerFactory;
-        this.credentialClient = credentialClient;       // ← NEW
+        this.credentialClient = credentialClient;
+        this.rollbackService = rollbackService;        // ← NEW
         this.metadataRestClient = RestClient.builder()
                 .baseUrl(metadataServiceUrl)
                 .build();
@@ -113,18 +116,10 @@ public class ProvisioningService {
             log.error("Failed to provision instance {}: {}",
                     instanceId, e.getMessage());
 
-            // Cleanup partial container
-            if (containerId != null) {
-                try {
-                    dockerClient.removeContainer(containerId);
-                } catch (Exception cleanupEx) {
-                    log.warn("Cleanup failed: {}",
-                            cleanupEx.getMessage());
-                }
-            }
+            // Use RollbackService instead of inline cleanup
+            rollbackService.rollback(instanceId, containerId);
 
-            updateState(instanceId, InstanceState.FAILED,
-                    null, null);
+            updateState(instanceId, InstanceState.FAILED, null, null);
         }
     }
 
