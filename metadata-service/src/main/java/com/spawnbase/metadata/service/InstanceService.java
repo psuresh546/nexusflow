@@ -90,29 +90,24 @@ public class InstanceService {
                 .orElseThrow(() ->
                         new InstanceNotFoundException(id));
 
-        // Update state
         instance.setState(request.getState());
 
-        // Update Docker info if provided
-        // (only set during PROVISIONING → RUNNING)
+        // Persist containerId if provided
         if (request.getContainerId() != null) {
             instance.setContainerId(request.getContainerId());
         }
+
+        // Persist hostPort if provided
         if (request.getHostPort() != null) {
             instance.setHostPort(request.getHostPort());
         }
 
-        // Set soft delete timestamp when deleting
-        if (request.getState() == InstanceState.DELETING) {
-            instance.setDeletedAt(java.time.LocalDateTime.now());
-        }
-
-        Instance updated = instanceRepository.save(instance);
+        Instance saved = instanceRepository.save(instance);
 
         log.info("Instance {} state updated to {}",
-                id, updated.getState());
+                id, request.getState());
 
-        return InstanceResponse.from(updated);
+        return InstanceResponse.from(saved);
     }
 
 

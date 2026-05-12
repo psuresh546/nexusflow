@@ -1,24 +1,26 @@
 package com.spawnbase.provisioning.provider;
+
 import com.spawnbase.common.model.DatabaseType;
 import org.springframework.stereotype.Component;
 
 /**
- * MongoDB implementation of DatabaseProvider.
+ * MongoDB database provider.
  *
- * Docker image : mongo:7.0
- * Default port : 27017
- * Auth env vars: MONGO_INITDB_ROOT_USERNAME, MONGO_INITDB_ROOT_PASSWORD
+ * Docker image: mongo:7.0
+ * Default port: 27017
+ * Health check: mongosh --eval "db.adminCommand('ping')"
  *
- * Note: MongoDB uses a different connection URL format — not JDBC.
- * It uses the MongoDB connection string format (mongodb://)
+ * Environment variables MongoDB expects:
+ * MONGO_INITDB_ROOT_USERNAME — root username
+ * MONGO_INITDB_ROOT_PASSWORD — root password
+ * MONGO_INITDB_DATABASE      — initial database to create
+ *
+ * MongoDB connection URLs use a different format than JDBC.
+ * The MongoDB URI format is:
+ * mongodb://username:password@host:port/dbname
  */
 @Component
 public class MongoDBProvider implements DatabaseProvider {
-
-    @Override
-    public DatabaseType getType() {
-        return DatabaseType.MONGODB;
-    }
 
     @Override
     public String getDockerImage() {
@@ -26,36 +28,62 @@ public class MongoDBProvider implements DatabaseProvider {
     }
 
     @Override
-    public int getContainerPort() {
-        return 27017;
+    public String getContainerPort() {
+        return "27017";
     }
 
     @Override
-    public String[] getEnvironmentVariables(String password, String dbName) {
+    public String[] getEnvironmentVariables(
+            String password, String dbName) {
         return new String[]{
                 "MONGO_INITDB_ROOT_USERNAME=spawnbase",
                 "MONGO_INITDB_ROOT_PASSWORD=" + password,
-                "MONGO_INITDB_DATABASE="      + dbName
+                "MONGO_INITDB_DATABASE=" + dbName
         };
     }
 
+    /**
+     * mongosh --eval "db.adminCommand('ping')" checks
+     * if MongoDB is accepting connections.
+     *
+     * mongosh is the modern MongoDB shell (replaces mongo CLI).
+     * --quiet suppresses banner output.
+     * Exit code 0 = healthy.
+     */
     @Override
     public String[] getHealthCheckCommand() {
-        // mongosh ping checks if MongoDB is ready
         return new String[]{
-                "mongosh", "--eval", "db.adminCommand('ping')"
+                "mongosh",
+                "--quiet",
+                "--eval",
+                "db.adminCommand('ping')"
         };
     }
 
     @Override
     public String getMemoryLimit() {
-        return "256m";   // MongoDB is lighter than PostgreSQL/MySQL
+        return "512m";
+    }
+
+    /**
+     * MongoDB connection URI format:
+     * mongodb://username:password@host:port/dbname?authSource=admin
+     *
+     * authSource=admin — credentials are stored in admin DB
+     * This is required when using MONGO_INITDB_ROOT_USERNAME.
+     */
+    @Override
+    public String getConnectionUrl(
+            String host, Integer port, String dbName) {
+        return String.format(
+                "mongodb://spawnbase:%s@%s:%d/%s?authSource=admin",
+                // Note: in production, password would be URL-encoded
+                // to handle special characters safely
+                "REDACTED", host, port, dbName);
     }
 
     @Override
-    public String getConnectionUrl(String host, int port, String dbName) {
-        return String.format(
-                "mongodb://spawnbase@%s:%d/%s", host, port, dbName
-        );
+    public DatabaseType getSupportedType() {
+        return DatabaseType.MONGODB;
     }
 }

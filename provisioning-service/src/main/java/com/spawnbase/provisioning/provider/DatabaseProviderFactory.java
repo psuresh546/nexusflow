@@ -14,7 +14,7 @@ public class DatabaseProviderFactory {
 
     public DatabaseProviderFactory(List<DatabaseProvider> providerList) {
         for (DatabaseProvider provider : providerList) {
-            providers.put(provider.getType(), provider);
+            providers.put(provider.getSupportedType(), provider);
         }
     }
 

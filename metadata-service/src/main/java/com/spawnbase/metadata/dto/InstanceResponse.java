@@ -21,6 +21,7 @@ public class InstanceResponse {
     private Integer hostPort;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String containerId;
 
 
     public static InstanceResponse from(com.spawnbase.metadata.entity.Instance instance) {
@@ -33,6 +34,7 @@ public class InstanceResponse {
                 .hostPort(instance.getHostPort())
                 .createdAt(instance.getCreatedAt())
                 .updatedAt(instance.getUpdatedAt())
+                .containerId(instance.getContainerId())
                 .build();
     }
 }

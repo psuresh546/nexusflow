@@ -1,21 +1,50 @@
 package com.spawnbase.provisioning.provider;
+
 import com.spawnbase.common.model.DatabaseType;
 
+/**
+ * Strategy interface for database providers.
+ *
+ * Each implementation provides Docker-specific config
+ * for a particular database type.
+ *
+ * Pattern: Strategy — behaviour varies by DB type,
+ * the algorithm (provisioning flow) stays the same.
+ */
 public interface DatabaseProvider {
 
-    DatabaseType getType();
-
+    /** Docker image to pull and run */
     String getDockerImage();
 
-    int getContainerPort();
+    /** Port exposed inside the container */
+    String getContainerPort();
 
-    String[] getEnvironmentVariables(String password, String dbName);
+    /**
+     * Environment variables passed to the container.
+     * Each DB has different variable names.
+     */
+    String[] getEnvironmentVariables(
+            String password, String dbName);
 
+    /**
+     * Command to run inside container to check health.
+     * Used in Docker healthcheck config.
+     */
     String[] getHealthCheckCommand();
 
-    default String getMemoryLimit() {
-        return "512m";    // safe default for all DBs
-    }
+    /** Memory limit for the container e.g. "512m" */
+    String getMemoryLimit();
 
-    String getConnectionUrl(String host, int port, String dbName);
+    /**
+     * Connection URL for the database.
+     * Format varies by DB type:
+     * PostgreSQL: jdbc:postgresql://...
+     * MySQL:      jdbc:mysql://...
+     * MongoDB:    mongodb://...
+     */
+    String getConnectionUrl(
+            String host, Integer port, String dbName);
+
+    /** Which DatabaseType this provider handles */
+    DatabaseType getSupportedType();
 }

@@ -1,21 +1,17 @@
 package com.spawnbase.provisioning.provider;
+
 import com.spawnbase.common.model.DatabaseType;
 import org.springframework.stereotype.Component;
 
 /**
- * PostgreSQL implementation of DatabaseProvider.
+ * PostgreSQL database provider.
  *
- * Docker image : postgres:15
- * Default port : 5432
- * Auth env vars: POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_USER
+ * Docker image: postgres:15
+ * Default port: 5432
+ * Health check: pg_isready
  */
 @Component
 public class PostgreSQLProvider implements DatabaseProvider {
-
-    @Override
-    public DatabaseType getType() {
-        return DatabaseType.POSTGRESQL;
-    }
 
     @Override
     public String getDockerImage() {
@@ -23,25 +19,30 @@ public class PostgreSQLProvider implements DatabaseProvider {
     }
 
     @Override
-    public int getContainerPort() {
-        return 5432;
+    public String getContainerPort() {
+        return "5432";
     }
 
     @Override
-    public String[] getEnvironmentVariables(String password, String dbName) {
+    public String[] getEnvironmentVariables(
+            String password, String dbName) {
         return new String[]{
+                "POSTGRES_USER=spawnbase",
                 "POSTGRES_PASSWORD=" + password,
-                "POSTGRES_DB="       + dbName,
-                "POSTGRES_USER=spawnbase"
+                "POSTGRES_DB=" + dbName
         };
     }
 
+    /**
+     * pg_isready checks if PostgreSQL is accepting connections.
+     * -U spawnbase — connect as the spawnbase user.
+     * Returns exit code 0 when the server is ready.
+     */
     @Override
     public String[] getHealthCheckCommand() {
-        // pg_isready checks if PostgreSQL is accepting connections
-        // -U = username, -d = database name
         return new String[]{
-                "pg_isready", "-U", "spawnbase"
+                "pg_isready",
+                "-U", "spawnbase"
         };
     }
 
@@ -51,9 +52,15 @@ public class PostgreSQLProvider implements DatabaseProvider {
     }
 
     @Override
-    public String getConnectionUrl(String host, int port, String dbName) {
+    public String getConnectionUrl(
+            String host, Integer port, String dbName) {
         return String.format(
-                "jdbc:postgresql://%s:%d/%s", host, port, dbName
-        );
+                "jdbc:postgresql://%s:%d/%s",
+                host, port, dbName);
+    }
+
+    @Override
+    public DatabaseType getSupportedType() {
+        return DatabaseType.POSTGRESQL;
     }
 }
