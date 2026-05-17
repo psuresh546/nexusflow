@@ -1,31 +1,42 @@
 package com.spawnbase.gateway.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spawnbase.gateway.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
-/**
- * JWT Authentication Filter — STUB
- *
- * Currently passes all requests through.
- * Day 20 will add full JWT signature validation
- * and RBAC enforcement.
- *
- * When fully implemented:
- * - Missing token → 401 Unauthorized
- * - Invalid signature → 401 Unauthorized
- * - Valid token, wrong role → 403 Forbidden
- * - Valid token, correct role → pass through
- */
 @Component
 @Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private final JwtUtil jwtUtil;
+    private final ObjectMapper objectMapper;
+
+    public JwtAuthFilter(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+        this.objectMapper = new ObjectMapper();
+    }
+
+    private static final List<String> PUBLIC_PATHS = List.of(
+            "/actuator",
+            "/api/auth"
+    );
+
+    private static final List<String> MUTATING_METHODS = List.of(
+            "POST", "PATCH", "PUT", "DELETE"
+    );
 
     @Override
     protected void doFilterInternal(
@@ -34,18 +45,89 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        String path = request.getRequestURI();
+        String method = request.getMethod();
 
-        // STUB — log but allow everything through
-        // Day 20 replaces this with real JWT validation
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.debug("No Bearer token — " +
-                    "passing through (stub mode)");
-        } else {
-            log.debug("Bearer token present — " +
-                    "skipping validation (stub mode)");
+        // OPTIONS preflight — always allow (for CORS)
+        if ("OPTIONS".equalsIgnoreCase(method)) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
+        // Public paths — skip JWT validation
+        if (isPublicPath(path)) {
+            log.debug("Public path — skipping JWT: {}", path);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Extract token from Authorization header
+        String authHeader = request.getHeader("Authorization");
+        String token = extractToken(authHeader);
+
+        if (token == null) {
+            log.warn("No JWT token — path: {}", path);
+            sendError(response, HttpStatus.UNAUTHORIZED,"Missing Authorization header. " +
+                            "Expected: Bearer <token>");
+            return;
+        }
+
+        // Validate token signature and expiration
+        if (!jwtUtil.isValid(token)) {
+            log.warn("Invalid JWT token — path: {}", path);
+            sendError(response, HttpStatus.UNAUTHORIZED,"Invalid or expired JWT token");
+            return;
+        }
+
+        // Extract user info from token claims
+        String userId = jwtUtil.getSubject(token);
+        List<String> roles = jwtUtil.getRoles(token);
+
+        log.debug("JWT valid — user: {} roles: {}", userId, roles);
+
+        // RBAC — mutating operations require ADMIN role
+        if (MUTATING_METHODS.contains(
+                method.toUpperCase())) {
+            if (!roles.contains("ADMIN")) {
+                log.warn("RBAC denied — user: {} " + "roles: {} method: {}", userId, roles, method);
+                sendError(response, HttpStatus.FORBIDDEN,"Insufficient permissions. " +
+                                "ADMIN role required for " + method);
+                return;
+            }
+        }
+
+        // Store user context as request attributes
+        request.setAttribute("X-User-Id", userId);
+        request.setAttribute("X-User-Roles", String.join(",", roles));
+
+        log.info("JWT authorized — user: {} {} {}", userId, method, path);
+
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isPublicPath(String path) {
+        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+    }
+
+    private String extractToken(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
+    }
+
+    private void sendError(HttpServletResponse response, HttpStatus status, String message) throws IOException {
+
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+        Map<String, Object> body = Map.of(
+                "timestamp", LocalDateTime.now().toString(),
+                "status", status.value(),
+                "error", status.getReasonPhrase(),
+                "message", message
+        );
+
+        response.getWriter().write(objectMapper.writeValueAsString(body));
     }
 }

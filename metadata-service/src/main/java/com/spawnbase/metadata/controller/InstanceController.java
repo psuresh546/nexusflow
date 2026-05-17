@@ -25,18 +25,13 @@ public class InstanceController {
 
 
     @PostMapping
-    public ResponseEntity<InstanceResponse> createInstance(
-            @Valid @RequestBody CreateInstanceRequest request) {
+    public ResponseEntity<InstanceResponse> createInstance(@Valid @RequestBody CreateInstanceRequest request) {
 
-        log.info("POST /api/instances — creating {} instance",
-                request.getDbType());
+        log.info("POST /api/instances — creating {} instance", request.getDbType());
 
-        InstanceResponse response =
-                instanceService.createInstance(request);
+        InstanceResponse response = instanceService.createInstance(request);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)  // 201
-                .body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
 
@@ -46,19 +41,21 @@ public class InstanceController {
 
         log.info("GET /api/instances/{}", id);
 
-        return ResponseEntity.ok(
-                instanceService.getInstance(id));
+        return ResponseEntity.ok(instanceService.getInstance(id));
     }
 
 
     @GetMapping
-    public ResponseEntity<List<InstanceResponse>> getInstances(
-            @RequestParam String ownerId) {
+    public ResponseEntity<?> getInstances(@RequestParam(required = false) String ownerId) {
 
-        log.info("GET /api/instances?ownerId={}", ownerId);
-
-        return ResponseEntity.ok(
-                instanceService.getInstancesByOwner(ownerId));
+        if (ownerId != null) {
+            log.info("GET /api/instances?ownerId={}", ownerId);
+            return ResponseEntity.ok(
+                    instanceService.getInstancesByOwner(ownerId));
+        } else {
+            log.info("GET /api/instances/admin/all");
+            return ResponseEntity.ok(instanceService.getAllInstances());
+        }
     }
 
 
@@ -67,11 +64,9 @@ public class InstanceController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateStateRequest request) {
 
-        log.info("PATCH /api/instances/{}/state → {}",
-                id, request.getState());
+        log.info("PATCH /api/instances/{}/state → {}", id, request.getState());
 
-        return ResponseEntity.ok(
-                instanceService.updateState(id, request));
+        return ResponseEntity.ok(instanceService.updateState(id, request));
     }
 
 
@@ -80,14 +75,12 @@ public class InstanceController {
 
         log.info("GET /api/instances/admin/all");
 
-        return ResponseEntity.ok(
-                instanceService.getAllInstances());
+        return ResponseEntity.ok(instanceService.getAllInstances());
     }
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteInstance(
-            @PathVariable UUID id) {
+    public ResponseEntity<Void> deleteInstance(@PathVariable UUID id) {
 
         log.info("DELETE /api/instances/{}", id);
 
